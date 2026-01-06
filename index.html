@@ -13,14 +13,12 @@
   --foodhub-green:#1FA971;
   --bg:#F5F6F8;
 }
-
 body {
   font-family: Arial, sans-serif;
   background: var(--bg);
   margin: 0;
   padding: 15px;
 }
-
 .container {
   max-width: 900px;
   background: #fff;
@@ -28,38 +26,28 @@ body {
   box-shadow: 0 6px 16px rgba(0,0,0,.12);
   margin: auto;
 }
-
 .header {
   background: var(--foodhub-red);
   color: white;
   padding: 16px;
 }
-
 .content { padding: 16px; }
-
 h3 {
   margin-top: 25px;
   border-bottom: 2px solid #eee;
   padding-bottom: 6px;
 }
-
 .row {
   display: flex;
   flex-direction: column;
   margin-bottom: 12px;
 }
-
-label {
-  font-size: 14px;
-  margin-bottom: 4px;
-}
-
+label { font-size: 14px; margin-bottom: 4px; }
 input {
   padding: 8px;
   border-radius: 6px;
   border: 1px solid #ccc;
 }
-
 button {
   background: var(--foodhub-red);
   color: white;
@@ -70,15 +58,9 @@ button {
   width: 100%;
   margin-top: 15px;
 }
-
-.result {
-  font-weight: bold;
-  font-size: 16px;
-}
-
+.result { font-weight: bold; font-size: 16px; }
 .positive { color: var(--foodhub-green); }
 .negative { color: var(--foodhub-red); }
-
 .badge {
   background: var(--foodhub-green);
   color: white;
@@ -88,7 +70,6 @@ button {
   margin-top: 10px;
   font-weight: bold;
 }
-
 .notice {
   background: #fff3cd;
   color: #856404;
@@ -96,9 +77,7 @@ button {
   border-radius: 8px;
   margin-top: 10px;
 }
-
 canvas { margin-top: 20px; }
-
 @media print {
   button { display: none; }
   body { background: white; }
@@ -157,6 +136,14 @@ canvas { margin-top: 20px; }
 
 <script>
 const GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbxS7hvWEbB0Ki1q0FEoGwWPKRFa06oJFTwlrySCzcpbIUhUdy1KWSe7pEiz2lcu-_w_/exec";
+
+const fdCostEl = document.getElementById("fdCost");
+const fhCostEl = document.getElementById("fhCost");
+const monthlyEl = document.getElementById("monthly");
+const annualEl = document.getElementById("annual");
+const confidenceEl = document.getElementById("confidence");
+const customerNoticeEl = document.getElementById("customerNotice");
+
 let monthlyChart, annualChart;
 
 function calculate() {
@@ -183,18 +170,17 @@ function calculate() {
   const savings = fdCost - fhCost;
   const annualSavings = savings * 12;
 
-  const customerExtra =
-    o * (+fdServiceAll.value);
+  const customerExtra = o * (+fdServiceAll.value);
 
   fdCostEl.innerText = fdCost.toFixed(2);
   fhCostEl.innerText = fhCost.toFixed(2);
   monthlyEl.innerText = savings.toFixed(2);
   annualEl.innerText = annualSavings.toFixed(2);
 
-  confidence.innerText =
+  confidenceEl.innerText =
     `High confidence savings: £${annualSavings.toFixed(0)} per year`;
 
-  customerNotice.innerText =
+  customerNoticeEl.innerText =
     `Your customers pay £${customerExtra.toFixed(0)} more per month on Flipdish, and the restaurant does not receive this.`;
 
   saveToSheet(fdCost, fhCost, savings, annualSavings, customerExtra);
@@ -246,12 +232,6 @@ function drawCharts(fd, fh, a) {
     }
   });
 }
-
-const fdCostEl = document.getElementById("fdCost");
-const fhCostEl = document.getElementById("fhCost");
-const monthlyEl = document.getElementById("monthly");
-const annualEl = document.getElementById("annual");
-
 </script>
 
 </body>
