@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Foodhub Savings Calculator</title>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
 :root {
   --foodhub-red:#E4002B;
@@ -33,9 +35,7 @@ body {
   padding: 16px;
 }
 
-.content {
-  padding: 16px;
-}
+.content { padding: 16px; }
 
 h3 {
   margin-top: 25px;
@@ -49,10 +49,7 @@ h3 {
   margin-bottom: 12px;
 }
 
-label {
-  font-size: 14px;
-  margin-bottom: 4px;
-}
+label { font-size: 14px; margin-bottom: 4px; }
 
 input {
   padding: 8px;
@@ -60,36 +57,22 @@ input {
   border: 1px solid #ccc;
 }
 
-.result {
-  font-weight: bold;
-  font-size: 16px;
-}
-
-.positive { color: var(--foodhub-green); }
-.negative { color: var(--foodhub-red); }
-
-.buttons {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 20px;
-}
-
 button {
   background: var(--foodhub-red);
   color: white;
   border: none;
-  padding: 10px 14px;
+  padding: 12px;
   border-radius: 6px;
   cursor: pointer;
-  flex: 1;
+  width: 100%;
+  margin-top: 15px;
 }
 
-/* Clean PDF */
-@media print {
-  button, .buttons { display: none; }
-  body { background: white; }
-}
+.result { font-weight: bold; font-size: 16px; }
+.positive { color: var(--foodhub-green); }
+.negative { color: var(--foodhub-red); }
+
+canvas { margin-top: 20px; }
 </style>
 </head>
 
@@ -98,142 +81,125 @@ button {
 <div class="container">
   <div class="header">
     <h2>Foodhub vs Flipdish Savings Calculator</h2>
-    <p>Merchant Summary</p>
   </div>
 
   <div class="content">
 
     <h3>Agent & Store</h3>
-    <div class="row">
-      <label>Agent Name</label>
-      <input id="agent">
-    </div>
-    <div class="row">
-      <label>Store Name</label>
-      <input id="store">
-    </div>
+    <div class="row"><label>Agent Name</label><input id="agent"></div>
+    <div class="row"><label>Store Name</label><input id="store"></div>
 
-    <h3>Business Details</h3>
-    <div class="row">
-      <label>Monthly Orders</label>
-      <input id="orders" type="number" value="1000">
-    </div>
-    <div class="row">
-      <label>Average Order Value (£)</label>
-      <input id="aov" type="number" value="20">
-    </div>
-    <div class="row">
-      <label>% Card Orders (0.7 = 70%)</label>
-      <input id="cardRate" type="number" step="0.01" value="0.7">
-    </div>
+    <h3>Business</h3>
+    <div class="row"><label>Monthly Orders</label><input id="orders" type="number" value="1000"></div>
+    <div class="row"><label>Average Order Value (£)</label><input id="aov" type="number" value="20"></div>
+    <div class="row"><label>% Card Orders</label><input id="cardRate" type="number" value="70"></div>
 
     <h3>Flipdish</h3>
-    <div class="row">
-      <label>Commission %</label>
-      <input id="fdComm" type="number" step="0.01" value="0.02">
-    </div>
-    <div class="row">
-      <label>Monthly Fee (£)</label>
-      <input id="fdFee" type="number" value="99">
-    </div>
+    <div class="row"><label>Commission (%)</label><input id="fdComm" value="2"></div>
+    <div class="row"><label>Monthly Fee (£)</label><input id="fdFee" value="99"></div>
 
     <h3>Foodhub</h3>
-    <div class="row">
-      <label>Commission %</label>
-      <input id="fhComm" type="number" step="0.01" value="0">
-    </div>
-    <div class="row">
-      <label>Monthly Fee (£)</label>
-      <input id="fhFee" type="number" value="0">
-    </div>
-    <div class="row">
-      <label>Service Charge (£ / order paid to shop)</label>
-      <input id="fhService" type="number" step="0.01" value="0.5">
-    </div>
-    <div class="row">
-      <label>Card Fee (£ / card order)</label>
-      <input id="fhCardFee" type="number" step="0.01" value="0.2">
-    </div>
+    <div class="row"><label>Commission (%)</label><input id="fhComm" value="0"></div>
+    <div class="row"><label>Monthly Fee (£)</label><input id="fhFee" value="0"></div>
+    <div class="row"><label>Service Charge (£ / order to shop)</label><input id="fhService" value="0.5"></div>
+    <div class="row"><label>Card Fee (£ / card order)</label><input id="fhCardFee" value="0.2"></div>
+
+    <button onclick="calculate()">Calculate</button>
 
     <h3>Results</h3>
-    <div class="row">
-      <label>Flipdish Monthly Cost (£)</label>
-      <div id="fdCost" class="result"></div>
-    </div>
-    <div class="row">
-      <label>Foodhub Monthly Cost (£)</label>
-      <div id="fhCost" class="result"></div>
-    </div>
-    <div class="row">
-      <label>Monthly Savings (£)</label>
-      <div id="monthly" class="result"></div>
-    </div>
-    <div class="row">
-      <label>Annual Savings (£)</label>
-      <div id="annual" class="result"></div>
-    </div>
+    <div class="row"><label>Flipdish Monthly Cost (£)</label><div id="fdCost" class="result"></div></div>
+    <div class="row"><label>Foodhub Monthly Cost (£)</label><div id="fhCost" class="result"></div></div>
+    <div class="row"><label>Monthly Savings (£)</label><div id="monthly" class="result"></div></div>
+    <div class="row"><label>Annual Savings (£)</label><div id="annual" class="result"></div></div>
 
-    <div class="buttons">
-      <button onclick="save()">Save to Sheet</button>
-      <button onclick="window.print()">Download PDF</button>
-    </div>
+    <canvas id="monthlyChart"></canvas>
+    <canvas id="annualChart"></canvas>
 
   </div>
 </div>
 
 <script>
 const GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbxS7hvWEbB0Ki1q0FEoGwWPKRFa06oJFTwlrySCzcpbIUhUdy1KWSe7pEiz2lcu-_w_/exec";
+let monthlyChart, annualChart;
 
-function calc(){
+function calculate() {
   const o = +orders.value;
   const a = +aov.value;
-  const c = +cardRate.value;
+  const cardRate = (+cardRate.value) / 100;
+
+  const fdCommission = (+fdComm.value) / 100;
+  const fhCommission = (+fhComm.value) / 100;
 
   const turnover = o * a;
-  const cardOrders = o * c;
+  const cardOrders = o * cardRate;
 
-  const flipdishCost =
-    (turnover * +fdComm.value) +
+  const fdCostVal =
+    (turnover * fdCommission) +
     (+fdFee.value);
 
-  const foodhubCost =
-    (turnover * +fhComm.value) +
+  const fhCostVal =
+    (turnover * fhCommission) +
     (+fhFee.value) +
     (cardOrders * +fhCardFee.value) -
     (o * +fhService.value);
 
-  const savings = flipdishCost - foodhubCost;
+  const savings = fdCostVal - fhCostVal;
 
-  fdCost.innerText = flipdishCost.toFixed(2);
-  fhCost.innerText = foodhubCost.toFixed(2);
+  fdCost.innerText = fdCostVal.toFixed(2);
+  fhCost.innerText = fhCostVal.toFixed(2);
   monthly.innerText = savings.toFixed(2);
   annual.innerText = (savings * 12).toFixed(2);
 
   monthly.className = "result " + (savings >= 0 ? "positive" : "negative");
+
+  saveToSheet(fdCostVal, fhCostVal, savings);
+  drawCharts(fdCostVal, fhCostVal, savings);
 }
 
-document.querySelectorAll("input").forEach(el =>
-  el.addEventListener("input", calc)
-);
-calc();
-
-function save(){
-  fetch(GOOGLE_SHEET_WEBHOOK,{
-    method:"POST",
-    body:JSON.stringify({
+function saveToSheet(fd, fh, s) {
+  fetch(GOOGLE_SHEET_WEBHOOK, {
+    method: "POST",
+    body: JSON.stringify({
       agent: agent.value,
       store: store.value,
       orders: orders.value,
       aov: aov.value,
       cardRate: cardRate.value,
-      fdCost: fdCost.innerText,
-      fhCost: fhCost.innerText,
-      monthlySavings: monthly.innerText,
-      annualSavings: annual.innerText
+      fdCost: fd.toFixed(2),
+      fhCost: fh.toFixed(2),
+      monthlySavings: s.toFixed(2),
+      annualSavings: (s * 12).toFixed(2)
     })
-  })
-  .then(() => alert("Saved to tracking sheet"))
-  .catch(() => alert("Error saving data"));
+  });
+}
+
+function drawCharts(fd, fh, s) {
+  if (monthlyChart) monthlyChart.destroy();
+  if (annualChart) annualChart.destroy();
+
+  monthlyChart = new Chart(document.getElementById("monthlyChart"), {
+    type: "bar",
+    data: {
+      labels: ["Flipdish", "Foodhub"],
+      datasets: [{
+        label: "Monthly Cost (£)",
+        data: [fd, fh],
+        backgroundColor: ["#E4002B", "#1FA971"]
+      }]
+    }
+  });
+
+  annualChart = new Chart(document.getElementById("annualChart"), {
+    type: "bar",
+    data: {
+      labels: ["Annual Savings"],
+      datasets: [{
+        label: "£",
+        data: [s * 12],
+        backgroundColor: ["#1FA971"]
+      }]
+    }
+  });
 }
 </script>
 
