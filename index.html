@@ -133,10 +133,10 @@ canvas { margin-top: 20px; }
 </div>
 
 <script>
-/* ========= CONFIG ========= */
-const GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbwFijpRsZjsG7UnHmsIGAKUukV_Ob8bzdlIqqlqW5J2ms7NnAciZk17pXQwVzf-ge6B/exec";
+/* ===== CONFIG ===== */
+const GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbwIjQlF8pFiQoABpttSX98NN2grUAoHaGAUBtFplkKJS1oXejCEnTxlF0NXZnOWP2oH/exec";
 
-/* ========= ELEMENTS ========= */
+/* ===== ELEMENTS ===== */
 const agent = document.getElementById("agent");
 const store = document.getElementById("store");
 const orders = document.getElementById("orders");
@@ -161,7 +161,7 @@ let monthlyChart, annualChart;
 
 document.getElementById("calcBtn").addEventListener("click", calculate);
 
-/* ========= MAIN ========= */
+/* ===== MAIN ===== */
 function calculate() {
   const o = Number(orders.value);
   const a = Number(aov.value);
@@ -173,10 +173,7 @@ function calculate() {
   const turnover = o * a;
   const cardOrders = o * cardPct;
 
-  const fdCost =
-    (turnover * fdPct) +
-    Number(fdFee.value);
-
+  const fdCost = (turnover * fdPct) + Number(fdFee.value);
   const fhCost =
     (turnover * fhPct) +
     Number(fhFee.value) +
@@ -202,27 +199,30 @@ function calculate() {
   saveToSheet(fdCost, fhCost, savings, annualSavings, customerExtra);
 }
 
-/* ========= SAVE ========= */
+/* ===== SAVE (CORS SAFE) ===== */
 function saveToSheet(fdCost, fhCost, monthlySavings, annualSavings, customerExtra) {
-  fetch(GOOGLE_SHEET_WEBHOOK, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      agent: agent.value,
-      store: store.value,
-      orders: orders.value,
-      aov: aov.value,
-      cardRate: cardRate.value,
-      fdCost: fdCost.toFixed(2),
-      fhCost: fhCost.toFixed(2),
-      monthlySavings: monthlySavings.toFixed(2),
-      annualSavings: annualSavings.toFixed(2),
-      customerExtra: customerExtra.toFixed(2)
-    })
-  }).catch(err => console.error("Sheet error:", err));
+  const payload = {
+    agent: agent.value,
+    store: store.value,
+    orders: orders.value,
+    aov: aov.value,
+    cardRate: cardRate.value,
+    fdCost: fdCost.toFixed(2),
+    fhCost: fhCost.toFixed(2),
+    monthlySavings: monthlySavings.toFixed(2),
+    annualSavings: annualSavings.toFixed(2),
+    customerExtra: customerExtra.toFixed(2)
+  };
+
+  const blob = new Blob(
+    [JSON.stringify(payload)],
+    { type: "application/json" }
+  );
+
+  navigator.sendBeacon(GOOGLE_SHEET_WEBHOOK, blob);
 }
 
-/* ========= CHARTS ========= */
+/* ===== CHARTS ===== */
 function drawCharts(fd, fh, annual) {
   if (monthlyChart) monthlyChart.destroy();
   if (annualChart) annualChart.destroy();
