@@ -8,181 +8,159 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-:root {
-  --foodhub-red:#E4002B;
-  --foodhub-green:#1FA971;
-  --bg:#F5F6F8;
-}
 body {
   font-family: Arial, sans-serif;
-  background: var(--bg);
-  margin: 0;
+  background: #f5f6f8;
   padding: 15px;
 }
 .container {
   max-width: 900px;
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 6px 16px rgba(0,0,0,.12);
   margin: auto;
+  padding: 20px;
+  border-radius: 10px;
 }
-.header {
-  background: var(--foodhub-red);
-  color: white;
-  padding: 16px;
-}
-.content { padding: 16px; }
-h3 {
-  margin-top: 25px;
-  border-bottom: 2px solid #eee;
-  padding-bottom: 6px;
-}
-.row {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 12px;
-}
-label { font-size: 14px; margin-bottom: 4px; }
+h2 { color: #E4002B; }
+label { display: block; margin-top: 10px; }
 input {
+  width: 100%;
   padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+  margin-top: 4px;
 }
 button {
-  background: var(--foodhub-red);
-  color: white;
-  border: none;
+  margin-top: 20px;
   padding: 12px;
-  border-radius: 6px;
-  cursor: pointer;
   width: 100%;
-  margin-top: 15px;
+  background: #E4002B;
+  color: #fff;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
 }
-.result { font-weight: bold; font-size: 16px; }
+.result { font-weight: bold; margin-top: 5px; }
 .badge {
-  background: var(--foodhub-green);
-  color: white;
+  background: #1FA971;
+  color: #fff;
   padding: 10px;
-  border-radius: 8px;
   margin-top: 10px;
-  text-align: center;
+  border-radius: 6px;
 }
 .notice {
   background: #fff3cd;
-  color: #856404;
   padding: 10px;
-  border-radius: 8px;
   margin-top: 10px;
+  border-radius: 6px;
 }
 canvas { margin-top: 20px; }
-
-@media print {
-  button { display: none; }
-  body { background: white; }
-}
 </style>
 </head>
 
 <body>
 
 <div class="container">
-  <div class="header">
-    <h2>Foodhub vs Flipdish Savings Calculator</h2>
-  </div>
+<h2>Foodhub vs Flipdish Savings Calculator</h2>
 
-  <div class="content">
+<label>Agent Name</label>
+<input id="agent">
 
-    <h3>Agent & Store</h3>
-    <div class="row"><label>Agent Name</label><input id="agent"></div>
-    <div class="row"><label>Store Name</label><input id="store"></div>
+<label>Store Name</label>
+<input id="store">
 
-    <h3>Business</h3>
-    <div class="row"><label>Monthly Orders</label><input id="orders" type="number" value="1000"></div>
-    <div class="row"><label>Average Order Value (£)</label><input id="aov" type="number" value="20"></div>
-    <div class="row"><label>% Card Orders</label><input id="cardRate" type="number" value="70"></div>
+<label>Monthly Orders</label>
+<input id="orders" type="number" value="1000">
 
-    <h3>Flipdish</h3>
-    <div class="row"><label>Commission (%)</label><input id="fdComm" value="2"></div>
-    <div class="row"><label>Monthly Fee (£)</label><input id="fdFee" value="99"></div>
-    <div class="row">
-      <label>Service Charge (£ / order – customer pays, Flipdish keeps)</label>
-      <input id="fdService" value="0.5">
-    </div>
+<label>Average Order Value (£)</label>
+<input id="aov" type="number" value="20">
 
-    <h3>Foodhub</h3>
-    <div class="row"><label>Commission (%)</label><input id="fhComm" value="0"></div>
-    <div class="row"><label>Monthly Fee (£)</label><input id="fhFee" value="0"></div>
-    <div class="row"><label>Service Charge (£ / order paid to shop)</label><input id="fhService" value="0.5"></div>
-    <div class="row"><label>Card Fee (£ / card order)</label><input id="fhCardFee" value="0.2"></div>
+<label>% Card Orders</label>
+<input id="cardRate" type="number" value="70">
 
-    <button id="calcBtn">Calculate</button>
+<label>Flipdish Commission (%)</label>
+<input id="fdComm" value="2">
 
-    <h3>Results</h3>
-    <div class="row"><label>Flipdish Monthly Cost (£)</label><div id="fdCost" class="result">–</div></div>
-    <div class="row"><label>Foodhub Monthly Cost (£)</label><div id="fhCost" class="result">–</div></div>
-    <div class="row"><label>Monthly Savings (£)</label><div id="monthly" class="result">–</div></div>
-    <div class="row"><label>Annual Savings (£)</label><div id="annual" class="result">–</div></div>
+<label>Flipdish Monthly Fee (£)</label>
+<input id="fdFee" value="99">
 
-    <div id="confidence" class="badge"></div>
-    <div id="customerNotice" class="notice"></div>
+<label>Flipdish Service Charge (£ / order – customer pays)</label>
+<input id="fdService" value="0.5">
 
-    <canvas id="monthlyChart"></canvas>
-    <canvas id="annualChart"></canvas>
+<label>Foodhub Commission (%)</label>
+<input id="fhComm" value="0">
 
-  </div>
+<label>Foodhub Monthly Fee (£)</label>
+<input id="fhFee" value="0">
+
+<label>Foodhub Service Charge (£ / order to shop)</label>
+<input id="fhService" value="0.5">
+
+<label>Foodhub Card Fee (£ / card order)</label>
+<input id="fhCardFee" value="0.2">
+
+<button id="calcBtn">Calculate</button>
+
+<h3>Results</h3>
+<div>Flipdish Monthly Cost (£): <span id="fdCost">—</span></div>
+<div>Foodhub Monthly Cost (£): <span id="fhCost">—</span></div>
+<div>Monthly Savings (£): <span id="monthly">—</span></div>
+<div>Annual Savings (£): <span id="annual">—</span></div>
+
+<div id="confidence" class="badge"></div>
+<div id="customerNotice" class="notice"></div>
+
+<canvas id="monthlyChart"></canvas>
+<canvas id="annualChart"></canvas>
 </div>
 
 <script>
-/* ===== CONFIG ===== */
 const GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbw_x4JA8j-sCq0SlmhXYrmNx_OqfiOtZHhOgWguxy7oBRmOvdqXLs3ZVhsSXD5wNT8N/exec";
 
-/* ===== ELEMENTS ===== */
-const agent = document.getElementById("agent");
-const store = document.getElementById("store");
-const orders = document.getElementById("orders");
-const aov = document.getElementById("aov");
-const cardRate = document.getElementById("cardRate");
-const fdComm = document.getElementById("fdComm");
-const fdFee = document.getElementById("fdFee");
-const fdService = document.getElementById("fdService");
-const fhComm = document.getElementById("fhComm");
-const fhFee = document.getElementById("fhFee");
-const fhService = document.getElementById("fhService");
-const fhCardFee = document.getElementById("fhCardFee");
+const el = id => document.getElementById(id);
 
-const fdCostEl = document.getElementById("fdCost");
-const fhCostEl = document.getElementById("fhCost");
-const monthlyEl = document.getElementById("monthly");
-const annualEl = document.getElementById("annual");
-const confidenceEl = document.getElementById("confidence");
-const customerNoticeEl = document.getElementById("customerNotice");
+const agent = el("agent");
+const store = el("store");
+const orders = el("orders");
+const aov = el("aov");
+const cardRate = el("cardRate");
+const fdComm = el("fdComm");
+const fdFee = el("fdFee");
+const fdService = el("fdService");
+const fhComm = el("fhComm");
+const fhFee = el("fhFee");
+const fhService = el("fhService");
+const fhCardFee = el("fhCardFee");
+
+const fdCostEl = el("fdCost");
+const fhCostEl = el("fhCost");
+const monthlyEl = el("monthly");
+const annualEl = el("annual");
+const confidenceEl = el("confidence");
+const customerNoticeEl = el("customerNotice");
 
 let monthlyChart, annualChart;
 
-document.getElementById("calcBtn").addEventListener("click", calculate);
+el("calcBtn").addEventListener("click", calculate);
 
-/* ===== MAIN ===== */
 function calculate() {
-  const o = Number(orders.value);
-  const a = Number(aov.value);
-  const cardPct = Number(cardRate.value) / 100;
+  const o = +orders.value;
+  const a = +aov.value;
+  const cardPct = (+cardRate.value) / 100;
 
-  const fdPct = Number(fdComm.value) / 100;
-  const fhPct = Number(fhComm.value) / 100;
+  const fdPct = (+fdComm.value) / 100;
+  const fhPct = (+fhComm.value) / 100;
 
   const turnover = o * a;
   const cardOrders = o * cardPct;
 
-  const fdCost = (turnover * fdPct) + Number(fdFee.value);
+  const fdCost = (turnover * fdPct) + (+fdFee.value);
   const fhCost =
     (turnover * fhPct) +
-    Number(fhFee.value) +
-    (cardOrders * Number(fhCardFee.value)) -
-    (o * Number(fhService.value));
+    (+fhFee.value) +
+    (cardOrders * +fhCardFee.value) -
+    (o * +fhService.value);
 
   const savings = fdCost - fhCost;
   const annualSavings = savings * 12;
-  const customerExtra = o * Number(fdService.value);
+  const customerExtra = o * +fdService.value;
 
   fdCostEl.textContent = fdCost.toFixed(2);
   fhCostEl.textContent = fhCost.toFixed(2);
@@ -193,41 +171,34 @@ function calculate() {
     `High confidence savings: £${annualSavings.toFixed(0)} per year`;
 
   customerNoticeEl.textContent =
-    `Your customers pay £${customerExtra.toFixed(0)} more per month on Flipdish, and the restaurant does not receive this.`;
+    `Your customers pay £${customerExtra.toFixed(0)} more per month on Flipdish.`;
 
   drawCharts(fdCost, fhCost, annualSavings);
   saveToSheet(fdCost, fhCost, savings, annualSavings, customerExtra);
 }
 
-/* ===== SAVE (CORS SAFE) ===== */
-<script>
 function saveToSheet(fdCost, fhCost, monthlySavings, annualSavings, customerExtra) {
-  const payload =
-    JSON.stringify({
-      agent: agent.value,
-      store: store.value,
-      orders: orders.value,
-      aov: aov.value,
-      cardRate: cardRate.value,
-      fdCost: fdCost.toFixed(2),
-      fhCost: fhCost.toFixed(2),
-      monthlySavings: monthlySavings.toFixed(2),
-      annualSavings: annualSavings.toFixed(2),
-      customerExtra: customerExtra.toFixed(2)
-    });
+  const payload = JSON.stringify({
+    agent: agent.value,
+    store: store.value,
+    orders: orders.value,
+    aov: aov.value,
+    cardRate: cardRate.value,
+    fdCost: fdCost.toFixed(2),
+    fhCost: fhCost.toFixed(2),
+    monthlySavings: monthlySavings.toFixed(2),
+    annualSavings: annualSavings.toFixed(2),
+    customerExtra: customerExtra.toFixed(2)
+  });
 
-  const blob = new Blob([payload]);
-
-  navigator.sendBeacon(GOOGLE_SHEET_WEBHOOK, blob);
+  navigator.sendBeacon(GOOGLE_SHEET_WEBHOOK, new Blob([payload]));
 }
-</script>
 
-/* ===== CHARTS ===== */
 function drawCharts(fd, fh, annual) {
   if (monthlyChart) monthlyChart.destroy();
   if (annualChart) annualChart.destroy();
 
-  monthlyChart = new Chart(document.getElementById("monthlyChart"), {
+  monthlyChart = new Chart(el("monthlyChart"), {
     type: "bar",
     data: {
       labels: ["Flipdish", "Foodhub"],
@@ -239,7 +210,7 @@ function drawCharts(fd, fh, annual) {
     }
   });
 
-  annualChart = new Chart(document.getElementById("annualChart"), {
+  annualChart = new Chart(el("annualChart"), {
     type: "bar",
     data: {
       labels: ["Annual Savings"],
