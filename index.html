@@ -134,7 +134,7 @@ canvas { margin-top: 20px; }
 
 <script>
 /* ===== CONFIG ===== */
-const GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbwIjQlF8pFiQoABpttSX98NN2grUAoHaGAUBtFplkKJS1oXejCEnTxlF0NXZnOWP2oH/exec";
+const GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbw_x4JA8j-sCq0SlmhXYrmNx_OqfiOtZHhOgWguxy7oBRmOvdqXLs3ZVhsSXD5wNT8N/exec";
 
 /* ===== ELEMENTS ===== */
 const agent = document.getElementById("agent");
@@ -200,27 +200,27 @@ function calculate() {
 }
 
 /* ===== SAVE (CORS SAFE) ===== */
+<script>
 function saveToSheet(fdCost, fhCost, monthlySavings, annualSavings, customerExtra) {
-  const payload = {
-    agent: agent.value,
-    store: store.value,
-    orders: orders.value,
-    aov: aov.value,
-    cardRate: cardRate.value,
-    fdCost: fdCost.toFixed(2),
-    fhCost: fhCost.toFixed(2),
-    monthlySavings: monthlySavings.toFixed(2),
-    annualSavings: annualSavings.toFixed(2),
-    customerExtra: customerExtra.toFixed(2)
-  };
+  const payload =
+    JSON.stringify({
+      agent: agent.value,
+      store: store.value,
+      orders: orders.value,
+      aov: aov.value,
+      cardRate: cardRate.value,
+      fdCost: fdCost.toFixed(2),
+      fhCost: fhCost.toFixed(2),
+      monthlySavings: monthlySavings.toFixed(2),
+      annualSavings: annualSavings.toFixed(2),
+      customerExtra: customerExtra.toFixed(2)
+    });
 
-  const blob = new Blob(
-    [JSON.stringify(payload)],
-    { type: "application/json" }
-  );
+  const blob = new Blob([payload]);
 
   navigator.sendBeacon(GOOGLE_SHEET_WEBHOOK, blob);
 }
+</script>
 
 /* ===== CHARTS ===== */
 function drawCharts(fd, fh, annual) {
