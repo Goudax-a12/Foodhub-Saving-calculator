@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Platform Savings Calculator</title>
+<title>Foodhub Savings Calculator</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -13,22 +13,18 @@
   --green:#1FA971;
   --bg:#f5f6f8;
 }
-
 body {
   font-family: Arial, sans-serif;
   background: var(--bg);
   margin: 0;
   padding: 12px;
 }
-
 .container {
   max-width: 500px;
   margin: auto;
 }
-
 .hidden { display: none !important; }
 
-/* Header */
 .header {
   background: var(--red);
   color: #fff;
@@ -36,13 +32,6 @@ body {
   border-radius: 12px;
   text-align: center;
 }
-
-.header h2 {
-  margin: 0;
-  font-size: 20px;
-}
-
-/* Big savings */
 .big-savings {
   background: #fff;
   margin-top: 12px;
@@ -50,47 +39,39 @@ body {
   border-radius: 12px;
   text-align: center;
 }
-
 .big-savings span {
   font-size: 30px;
   font-weight: bold;
   color: var(--green);
 }
 
-/* Sections */
 .section {
   background: #fff;
   margin-top: 12px;
   border-radius: 12px;
   overflow: hidden;
 }
-
 .section summary {
   padding: 14px;
   font-weight: bold;
   cursor: pointer;
   background: #f1f1f1;
 }
-
 .section .content {
   padding: 14px;
 }
 
-/* Inputs */
 label {
   font-size: 14px;
   margin-top: 10px;
   display: block;
 }
-
 input, select {
   width: 100%;
   padding: 10px;
   margin-top: 4px;
   font-size: 16px;
 }
-
-/* Button */
 button {
   width: 100%;
   padding: 14px;
@@ -102,20 +83,15 @@ button {
   border-radius: 10px;
   cursor: pointer;
 }
-
-/* Results */
 .result {
   font-weight: bold;
-  margin-top: 6px;
 }
-
 .notice {
   background: #fff3cd;
   padding: 10px;
   border-radius: 8px;
   margin-top: 10px;
 }
-
 canvas {
   margin-top: 20px;
 }
@@ -127,7 +103,7 @@ canvas {
 <div class="container">
 
   <div class="header">
-    <h2>Platform Savings Calculator</h2>
+    <h2>Foodhub Savings Calculator</h2>
   </div>
 
   <div class="big-savings">
@@ -137,7 +113,7 @@ canvas {
 
   <button onclick="togglePitch()">Toggle Pitch Mode</button>
 
-  <!-- INPUT SECTIONS -->
+  <!-- INPUTS -->
   <div id="inputs">
 
     <details class="section" open>
@@ -249,12 +225,14 @@ function togglePitch() {
   el("inputs").classList.toggle("hidden", pitchMode);
 }
 
-function animateValue(elm, start, end, duration) {
+function animateValue(elm, end) {
+  let start = 0;
   let startTime = null;
-  function step(timestamp) {
-    if (!startTime) startTime = timestamp;
-    const progress = Math.min((timestamp - startTime) / duration, 1);
-    elm.textContent = "£" + Math.floor(progress * (end - start) + start).toLocaleString();
+  function step(t) {
+    if (!startTime) startTime = t;
+    const progress = Math.min((t - startTime) / 800, 1);
+    elm.textContent =
+      "£" + Math.floor(progress * (end - start) + start).toLocaleString();
     if (progress < 1) requestAnimationFrame(step);
   }
   requestAnimationFrame(step);
@@ -279,7 +257,8 @@ function calculate() {
       : 0;
 
   const commissionCost =
-    (onlineBase + offlineBase) * (+el("compCommission").value / 100);
+    (onlineBase + offlineBase) *
+    (+el("compCommission").value / 100);
 
   const competitorCost =
     commissionCost +
@@ -300,12 +279,36 @@ function calculate() {
   el("fhCost").textContent = foodhubCost.toFixed(2);
   el("monthly").textContent = savings.toFixed(2);
 
-  animateValue(el("annual"), 0, annual, 900);
+  animateValue(el("annual"), annual);
+
+  const customerExtra = online * +el("compServiceCharge").value;
 
   el("customerNotice").textContent =
-    `Customers pay £${(online * +el("compServiceCharge").value).toFixed(0)} per month on ${el("competitorName").value}.`;
+    `Customers pay £${customerExtra.toFixed(0)} per month on ${el("competitorName").value}.`;
 
   drawCharts(competitorCost, foodhubCost, annual);
+  saveToSheet(competitorCost, foodhubCost, savings, annual, customerExtra);
+}
+
+function saveToSheet(compCost, fhCost, monthlySavings, annualSavings, customerExtra) {
+  const payload = JSON.stringify({
+    agent: el("agent").value,
+    store: el("store").value,
+    competitor: el("competitorName").value,
+    onlineOrders: el("onlineOrders").value,
+    offlineOrders: el("offlineOrders").value,
+    aov: el("aov").value,
+    competitorCost: compCost.toFixed(2),
+    foodhubCost: fhCost.toFixed(2),
+    monthlySavings: monthlySavings.toFixed(2),
+    annualSavings: annualSavings.toFixed(2),
+    customerExtra: customerExtra.toFixed(2)
+  });
+
+  navigator.sendBeacon(
+    GOOGLE_SHEET_WEBHOOK,
+    new Blob([payload])
+  );
 }
 
 function drawCharts(comp, fh, annual) {
