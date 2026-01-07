@@ -3,288 +3,320 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Unified Platform Savings Calculator</title>
+<title>Platform Savings Calculator</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
+:root {
+  --red:#E4002B;
+  --green:#1FA971;
+  --bg:#f5f6f8;
+}
+
 body {
   font-family: Arial, sans-serif;
-  background: #f5f6f8;
-  padding: 15px;
+  background: var(--bg);
+  margin: 0;
+  padding: 12px;
 }
+
 .container {
-  max-width: 950px;
-  background: #fff;
+  max-width: 500px;
   margin: auto;
-  padding: 20px;
-  border-radius: 10px;
 }
-h2 { color: #E4002B; }
-label { display: block; margin-top: 10px; font-weight: bold; }
-small { color: #666; }
+
+.hidden { display: none !important; }
+
+/* Header */
+.header {
+  background: var(--red);
+  color: #fff;
+  padding: 16px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+/* Big savings */
+.big-savings {
+  background: #fff;
+  margin-top: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.big-savings span {
+  font-size: 30px;
+  font-weight: bold;
+  color: var(--green);
+}
+
+/* Sections */
+.section {
+  background: #fff;
+  margin-top: 12px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.section summary {
+  padding: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  background: #f1f1f1;
+}
+
+.section .content {
+  padding: 14px;
+}
+
+/* Inputs */
+label {
+  font-size: 14px;
+  margin-top: 10px;
+  display: block;
+}
+
 input, select {
   width: 100%;
-  padding: 8px;
+  padding: 10px;
   margin-top: 4px;
+  font-size: 16px;
 }
+
+/* Button */
 button {
-  margin-top: 20px;
-  padding: 12px;
   width: 100%;
-  background: #E4002B;
+  padding: 14px;
+  margin-top: 16px;
+  font-size: 18px;
+  background: var(--red);
   color: #fff;
   border: none;
-  font-size: 16px;
+  border-radius: 10px;
   cursor: pointer;
 }
-.result { font-weight: bold; margin-top: 5px; }
-.badge {
-  background: #1FA971;
-  color: #fff;
-  padding: 10px;
-  margin-top: 10px;
-  border-radius: 6px;
+
+/* Results */
+.result {
+  font-weight: bold;
+  margin-top: 6px;
 }
+
 .notice {
   background: #fff3cd;
   padding: 10px;
+  border-radius: 8px;
   margin-top: 10px;
-  border-radius: 6px;
 }
-canvas { margin-top: 25px; }
+
+canvas {
+  margin-top: 20px;
+}
 </style>
 </head>
 
 <body>
 
 <div class="container">
-<h2>Foodhub Savings Calculator</h2>
 
-<label>Agent Name</label>
-<input id="agent">
+  <div class="header">
+    <h2>Platform Savings Calculator</h2>
+  </div>
 
-<label>Store Name</label>
-<input id="store">
+  <div class="big-savings">
+    Annual Savings
+    <div><span id="annual">£0</span></div>
+  </div>
 
-<hr>
+  <button onclick="togglePitch()">Toggle Pitch Mode</button>
 
-<h3>Orders</h3>
+  <!-- INPUT SECTIONS -->
+  <div id="inputs">
 
-<label>Online Orders (Platform)</label>
-<input id="onlineOrders" type="number" value="1000">
+    <details class="section" open>
+      <summary>Agent & Store</summary>
+      <div class="content">
+        <label>Agent Name</label>
+        <input id="agent">
+        <label>Store Name</label>
+        <input id="store">
+      </div>
+    </details>
 
-<label>Offline Orders (Phone / Walk-in)</label>
-<input id="offlineOrders" type="number" value="300">
+    <details class="section">
+      <summary>Orders</summary>
+      <div class="content">
+        <label>Online Orders</label>
+        <input id="onlineOrders" type="number" value="1000">
+        <label>Offline Orders</label>
+        <input id="offlineOrders" type="number" value="300">
+        <label>% Card Orders</label>
+        <input id="cardRate" type="number" value="70">
+        <label>Average Order Value (£)</label>
+        <input id="aov" type="number" value="20">
+      </div>
+    </details>
 
-<label>% Card Orders (Online)</label>
-<input id="cardRate" type="number" value="70">
+    <details class="section">
+      <summary>Competitor</summary>
+      <div class="content">
+        <label>Competitor</label>
+        <select id="competitorName">
+          <option>Flipdish</option>
+          <option>Just Eat</option>
+          <option>Uber Eats</option>
+          <option>Deliveroo</option>
+          <option>Other</option>
+        </select>
 
-<label>Average Order Value (£)</label>
-<input id="aov" type="number" value="20">
+        <label>Commission (%)</label>
+        <input id="compCommission" value="2">
 
-<hr>
+        <label>Commission Scope</label>
+        <select id="commissionScope">
+          <option value="card">Card only</option>
+          <option value="all">Card + Cash</option>
+        </select>
 
-<h3>Competitor</h3>
+        <label>Commission on Offline Orders?</label>
+        <select id="offlineCommission">
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
 
-<label>Competitor Platform</label>
-<select id="competitorName">
-  <option>Flipdish</option>
-  <option>Just Eat</option>
-  <option>Uber Eats</option>
-  <option>Deliveroo</option>
-  <option>Other</option>
-</select>
+        <label>Monthly Fee (£)</label>
+        <input id="compMonthlyFee" value="99">
 
-<label>Commission (%)</label>
-<input id="compCommission" value="2">
+        <label>Flat Fee (£ / card order)</label>
+        <input id="compFlatFee" value="0.20">
 
-<label>Commission Applies To</label>
-<select id="commissionScope">
-  <option value="card">Card orders only</option>
-  <option value="all">Card + Cash orders</option>
-</select>
+        <label>Service Charge (£ / order)</label>
+        <input id="compServiceCharge" value="0.50">
+      </div>
+    </details>
 
-<label>Commission on Offline Orders?</label>
-<select id="offlineCommission">
-  <option value="no">No</option>
-  <option value="yes">Yes</option>
-</select>
+    <details class="section">
+      <summary>Foodhub</summary>
+      <div class="content">
+        <label>Commission (%)</label>
+        <input id="fhCommission" value="0">
+        <label>Monthly Fee (£)</label>
+        <input id="fhMonthlyFee" value="0">
+        <label>Service Charge (£ / order to shop)</label>
+        <input id="fhServiceCharge" value="0.50">
+        <label>Card Fee (£ / card order)</label>
+        <input id="fhCardFee" value="0.20">
+      </div>
+    </details>
 
-<label>Monthly Fee (£)</label>
-<input id="compMonthlyFee" value="99">
+  </div>
 
-<label>Flat Rate Fee (£ / card order – shop pays)</label>
-<input id="compFlatFee" value="0.20">
+  <button id="calcBtn">Calculate</button>
 
-<label>Service Charge (£ / online order – customer pays)</label>
-<input id="compServiceCharge" value="0.50">
+  <!-- RESULTS -->
+  <div class="section">
+    <div class="content">
+      <div>Competitor Cost: <span id="compCost" class="result">—</span></div>
+      <div>Foodhub Cost: <span id="fhCost" class="result">—</span></div>
+      <div>Monthly Savings: <span id="monthly" class="result">—</span></div>
+      <div id="customerNotice" class="notice"></div>
 
-<hr>
-
-<h3>Foodhub</h3>
-
-<label>Commission (%)</label>
-<input id="fhCommission" value="0">
-
-<label>Monthly Fee (£)</label>
-<input id="fhMonthlyFee" value="0">
-
-<label>Service Charge (£ / order paid to shop)</label>
-<input id="fhServiceCharge" value="0.50">
-
-<label>Card Fee (£ / card order – shop pays)</label>
-<input id="fhCardFee" value="0.20">
-
-<button id="calcBtn">Calculate</button>
-
-<hr>
-
-<h3>Results</h3>
-
-<div>Competitor Total Monthly Cost (£): <span id="compCost">—</span></div>
-<div>Foodhub Monthly Cost (£): <span id="fhCost">—</span></div>
-<div>Monthly Savings (£): <span id="monthly">—</span></div>
-<div>Annual Savings (£): <span id="annual">—</span></div>
-
-<div id="confidence" class="badge"></div>
-<div id="customerNotice" class="notice"></div>
-
-<canvas id="monthlyChart"></canvas>
-<canvas id="annualChart"></canvas>
+      <canvas id="monthlyChart"></canvas>
+      <canvas id="annualChart"></canvas>
+    </div>
+  </div>
 
 </div>
 
 <script>
-const GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbzK63x5pqtq0vyW8uKc4-dhx6OhT_uS92-alsE8amh5YTQLNoY8OtjgK3DvDj9G7OVu/exec";
-
+const GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbz-mwk03OgjYkNVgFjhhrwdoY2KKNxCPwjCF8jk6PlYZWKTQG8G-K0L_DX41cgl_8-z/exec";
 const el = id => document.getElementById(id);
 
-const agent = el("agent");
-const store = el("store");
-const onlineOrders = el("onlineOrders");
-const offlineOrders = el("offlineOrders");
-const cardRate = el("cardRate");
-const aov = el("aov");
-
-const competitorName = el("competitorName");
-const compCommission = el("compCommission");
-const commissionScope = el("commissionScope");
-const offlineCommission = el("offlineCommission");
-const compMonthlyFee = el("compMonthlyFee");
-const compFlatFee = el("compFlatFee");
-const compServiceCharge = el("compServiceCharge");
-
-const fhCommission = el("fhCommission");
-const fhMonthlyFee = el("fhMonthlyFee");
-const fhServiceCharge = el("fhServiceCharge");
-const fhCardFee = el("fhCardFee");
-
-const compCostEl = el("compCost");
-const fhCostEl = el("fhCost");
-const monthlyEl = el("monthly");
-const annualEl = el("annual");
-const confidenceEl = el("confidence");
-const customerNoticeEl = el("customerNotice");
-
 let monthlyChart, annualChart;
+let pitchMode = false;
 
 el("calcBtn").addEventListener("click", calculate);
 
+function togglePitch() {
+  pitchMode = !pitchMode;
+  el("inputs").classList.toggle("hidden", pitchMode);
+}
+
+function animateValue(elm, start, end, duration) {
+  let startTime = null;
+  function step(timestamp) {
+    if (!startTime) startTime = timestamp;
+    const progress = Math.min((timestamp - startTime) / duration, 1);
+    elm.textContent = "£" + Math.floor(progress * (end - start) + start).toLocaleString();
+    if (progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
 function calculate() {
-  const online = +onlineOrders.value;
-  const offline = +offlineOrders.value;
-  const totalOrders = online + offline;
-  const cardPct = (+cardRate.value) / 100;
+  const online = +el("onlineOrders").value;
+  const offline = +el("offlineOrders").value;
+  const cardRate = +el("cardRate").value / 100;
+  const aov = +el("aov").value;
 
-  const cardOrders = online * cardPct;
-  const cashOrders = online - cardOrders;
+  const cardOrders = online * cardRate;
 
-  const orderValue = +aov.value;
+  const onlineBase =
+    el("commissionScope").value === "card"
+      ? cardOrders * aov
+      : online * aov;
 
-  /* COMMISSION BASE */
-  let onlineCommissionBase =
-    commissionScope.value === "card"
-      ? cardOrders * orderValue
-      : online * orderValue;
-
-  let offlineCommissionBase =
-    offlineCommission.value === "yes"
-      ? offline * orderValue
+  const offlineBase =
+    el("offlineCommission").value === "yes"
+      ? offline * aov
       : 0;
 
-  const commissionBase = onlineCommissionBase + offlineCommissionBase;
-
   const commissionCost =
-    commissionBase * (+compCommission.value / 100);
+    (onlineBase + offlineBase) * (+el("compCommission").value / 100);
 
-  const flatRateCost =
-    cardOrders * +compFlatFee.value;
-
-  const customerServiceCost =
-    online * +compServiceCharge.value;
-
-  const competitorTotalCost =
+  const competitorCost =
     commissionCost +
-    +compMonthlyFee.value +
-    flatRateCost +
-    customerServiceCost;
+    +el("compMonthlyFee").value +
+    (cardOrders * +el("compFlatFee").value) +
+    (online * +el("compServiceCharge").value);
 
   const foodhubCost =
-    (online * orderValue * (+fhCommission.value / 100)) +
-    +fhMonthlyFee.value +
-    (cardOrders * +fhCardFee.value) -
-    (online * +fhServiceCharge.value);
+    (online * aov * (+el("fhCommission").value / 100)) +
+    +el("fhMonthlyFee").value +
+    (cardOrders * +el("fhCardFee").value) -
+    (online * +el("fhServiceCharge").value);
 
-  const savings = competitorTotalCost - foodhubCost;
-  const annualSavings = savings * 12;
+  const savings = competitorCost - foodhubCost;
+  const annual = savings * 12;
 
-  compCostEl.textContent = competitorTotalCost.toFixed(2);
-  fhCostEl.textContent = foodhubCost.toFixed(2);
-  monthlyEl.textContent = savings.toFixed(2);
-  annualEl.textContent = annualSavings.toFixed(2);
+  el("compCost").textContent = competitorCost.toFixed(2);
+  el("fhCost").textContent = foodhubCost.toFixed(2);
+  el("monthly").textContent = savings.toFixed(2);
 
-  confidenceEl.textContent =
-    `High confidence savings vs ${competitorName.value}: £${annualSavings.toFixed(0)} per year`;
+  animateValue(el("annual"), 0, annual, 900);
 
-  customerNoticeEl.textContent =
-    `£${customerServiceCost.toFixed(0)} per month is paid by customers on ${competitorName.value} in service charges that do not go to the restaurant.`;
+  el("customerNotice").textContent =
+    `Customers pay £${(online * +el("compServiceCharge").value).toFixed(0)} per month on ${el("competitorName").value}.`;
 
-  drawCharts(competitorTotalCost, foodhubCost, annualSavings);
-  saveToSheet(competitorTotalCost, foodhubCost, savings, annualSavings, customerServiceCost);
+  drawCharts(competitorCost, foodhubCost, annual);
 }
 
-function saveToSheet(compCost, fhCost, monthlySavings, annualSavings, customerExtra) {
-  const payload = JSON.stringify({
-    agent: agent.value,
-    store: store.value,
-    competitor: competitorName.value,
-    onlineOrders: onlineOrders.value,
-    offlineOrders: offlineOrders.value,
-    aov: aov.value,
-    competitorCost: compCost.toFixed(2),
-    foodhubCost: fhCost.toFixed(2),
-    monthlySavings: monthlySavings.toFixed(2),
-    annualSavings: annualSavings.toFixed(2),
-    customerExtra: customerExtra.toFixed(2)
-  });
-
-  navigator.sendBeacon(GOOGLE_SHEET_WEBHOOK, new Blob([payload]));
-}
-
-function drawCharts(compCost, fhCost, annual) {
+function drawCharts(comp, fh, annual) {
   if (monthlyChart) monthlyChart.destroy();
   if (annualChart) annualChart.destroy();
 
   monthlyChart = new Chart(el("monthlyChart"), {
     type: "bar",
     data: {
-      labels: [competitorName.value, "Foodhub"],
-      datasets: [{
-        label: "Monthly Cost (£)",
-        data: [compCost, fhCost],
-        backgroundColor: ["#E4002B", "#1FA971"]
-      }]
+      labels: ["Competitor", "Foodhub"],
+      datasets: [{ data: [comp, fh] }]
     }
   });
 
@@ -292,11 +324,7 @@ function drawCharts(compCost, fhCost, annual) {
     type: "bar",
     data: {
       labels: ["Annual Savings"],
-      datasets: [{
-        label: "£",
-        data: [annual],
-        backgroundColor: ["#1FA971"]
-      }]
+      datasets: [{ data: [annual] }]
     }
   });
 }
