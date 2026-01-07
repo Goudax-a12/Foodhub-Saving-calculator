@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Foodhub Savings Calculator</title>
+<title>Unified Platform Savings Calculator</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -14,15 +14,16 @@ body {
   padding: 15px;
 }
 .container {
-  max-width: 900px;
+  max-width: 950px;
   background: #fff;
   margin: auto;
   padding: 20px;
   border-radius: 10px;
 }
 h2 { color: #E4002B; }
-label { display: block; margin-top: 10px; }
-input {
+label { display: block; margin-top: 10px; font-weight: bold; }
+small { color: #666; }
+input, select {
   width: 100%;
   padding: 8px;
   margin-top: 4px;
@@ -51,14 +52,14 @@ button {
   margin-top: 10px;
   border-radius: 6px;
 }
-canvas { margin-top: 20px; }
+canvas { margin-top: 25px; }
 </style>
 </head>
 
 <body>
 
 <div class="container">
-<h2>Foodhub vs Flipdish Savings Calculator</h2>
+<h2>Platform Savings Calculator</h2>
 
 <label>Agent Name</label>
 <input id="agent">
@@ -66,40 +67,82 @@ canvas { margin-top: 20px; }
 <label>Store Name</label>
 <input id="store">
 
-<label>Monthly Orders</label>
-<input id="orders" type="number" value="1000">
+<hr>
+
+<h3>Orders</h3>
+
+<label>Online Orders (Platform)</label>
+<input id="onlineOrders" type="number" value="1000">
+
+<label>Offline Orders (Phone / Walk-in)</label>
+<input id="offlineOrders" type="number" value="300">
+
+<label>% Card Orders (Online)</label>
+<input id="cardRate" type="number" value="70">
 
 <label>Average Order Value (£)</label>
 <input id="aov" type="number" value="20">
 
-<label>% Card Orders</label>
-<input id="cardRate" type="number" value="70">
+<hr>
 
-<label>Flipdish Commission (%)</label>
-<input id="fdComm" value="2">
+<h3>Competitor</h3>
 
-<label>Flipdish Monthly Fee (£)</label>
-<input id="fdFee" value="99">
+<label>Competitor Platform</label>
+<select id="competitorName">
+  <option>Flipdish</option>
+  <option>Just Eat</option>
+  <option>Uber Eats</option>
+  <option>Deliveroo</option>
+  <option>Other</option>
+</select>
 
-<label>Flipdish Service Charge (£ / order – customer pays)</label>
-<input id="fdService" value="0.5">
+<label>Commission (%)</label>
+<input id="compCommission" value="2">
 
-<label>Foodhub Commission (%)</label>
-<input id="fhComm" value="0">
+<label>Commission Applies To</label>
+<select id="commissionScope">
+  <option value="card">Card orders only</option>
+  <option value="all">Card + Cash orders</option>
+</select>
 
-<label>Foodhub Monthly Fee (£)</label>
-<input id="fhFee" value="0">
+<label>Commission on Offline Orders?</label>
+<select id="offlineCommission">
+  <option value="no">No</option>
+  <option value="yes">Yes</option>
+</select>
 
-<label>Foodhub Service Charge (£ / order to shop)</label>
-<input id="fhService" value="0.5">
+<label>Monthly Fee (£)</label>
+<input id="compMonthlyFee" value="99">
 
-<label>Foodhub Card Fee (£ / card order)</label>
-<input id="fhCardFee" value="0.2">
+<label>Flat Rate Fee (£ / card order – shop pays)</label>
+<input id="compFlatFee" value="0.20">
+
+<label>Service Charge (£ / online order – customer pays)</label>
+<input id="compServiceCharge" value="0.50">
+
+<hr>
+
+<h3>Foodhub</h3>
+
+<label>Commission (%)</label>
+<input id="fhCommission" value="0">
+
+<label>Monthly Fee (£)</label>
+<input id="fhMonthlyFee" value="0">
+
+<label>Service Charge (£ / order paid to shop)</label>
+<input id="fhServiceCharge" value="0.50">
+
+<label>Card Fee (£ / card order – shop pays)</label>
+<input id="fhCardFee" value="0.20">
 
 <button id="calcBtn">Calculate</button>
 
+<hr>
+
 <h3>Results</h3>
-<div>Flipdish Monthly Cost (£): <span id="fdCost">—</span></div>
+
+<div>Competitor Total Monthly Cost (£): <span id="compCost">—</span></div>
 <div>Foodhub Monthly Cost (£): <span id="fhCost">—</span></div>
 <div>Monthly Savings (£): <span id="monthly">—</span></div>
 <div>Annual Savings (£): <span id="annual">—</span></div>
@@ -109,27 +152,35 @@ canvas { margin-top: 20px; }
 
 <canvas id="monthlyChart"></canvas>
 <canvas id="annualChart"></canvas>
+
 </div>
 
 <script>
-const GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbw_x4JA8j-sCq0SlmhXYrmNx_OqfiOtZHhOgWguxy7oBRmOvdqXLs3ZVhsSXD5wNT8N/exec";
+const GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbzK63x5pqtq0vyW8uKc4-dhx6OhT_uS92-alsE8amh5YTQLNoY8OtjgK3DvDj9G7OVu/exec";
 
 const el = id => document.getElementById(id);
 
 const agent = el("agent");
 const store = el("store");
-const orders = el("orders");
-const aov = el("aov");
+const onlineOrders = el("onlineOrders");
+const offlineOrders = el("offlineOrders");
 const cardRate = el("cardRate");
-const fdComm = el("fdComm");
-const fdFee = el("fdFee");
-const fdService = el("fdService");
-const fhComm = el("fhComm");
-const fhFee = el("fhFee");
-const fhService = el("fhService");
+const aov = el("aov");
+
+const competitorName = el("competitorName");
+const compCommission = el("compCommission");
+const commissionScope = el("commissionScope");
+const offlineCommission = el("offlineCommission");
+const compMonthlyFee = el("compMonthlyFee");
+const compFlatFee = el("compFlatFee");
+const compServiceCharge = el("compServiceCharge");
+
+const fhCommission = el("fhCommission");
+const fhMonthlyFee = el("fhMonthlyFee");
+const fhServiceCharge = el("fhServiceCharge");
 const fhCardFee = el("fhCardFee");
 
-const fdCostEl = el("fdCost");
+const compCostEl = el("compCost");
 const fhCostEl = el("fhCost");
 const monthlyEl = el("monthly");
 const annualEl = el("annual");
@@ -141,51 +192,78 @@ let monthlyChart, annualChart;
 el("calcBtn").addEventListener("click", calculate);
 
 function calculate() {
-  const o = +orders.value;
-  const a = +aov.value;
+  const online = +onlineOrders.value;
+  const offline = +offlineOrders.value;
+  const totalOrders = online + offline;
   const cardPct = (+cardRate.value) / 100;
 
-  const fdPct = (+fdComm.value) / 100;
-  const fhPct = (+fhComm.value) / 100;
+  const cardOrders = online * cardPct;
+  const cashOrders = online - cardOrders;
 
-  const turnover = o * a;
-  const cardOrders = o * cardPct;
+  const orderValue = +aov.value;
 
-  const fdCost = (turnover * fdPct) + (+fdFee.value);
-  const fhCost =
-    (turnover * fhPct) +
-    (+fhFee.value) +
+  /* COMMISSION BASE */
+  let onlineCommissionBase =
+    commissionScope.value === "card"
+      ? cardOrders * orderValue
+      : online * orderValue;
+
+  let offlineCommissionBase =
+    offlineCommission.value === "yes"
+      ? offline * orderValue
+      : 0;
+
+  const commissionBase = onlineCommissionBase + offlineCommissionBase;
+
+  const commissionCost =
+    commissionBase * (+compCommission.value / 100);
+
+  const flatRateCost =
+    cardOrders * +compFlatFee.value;
+
+  const customerServiceCost =
+    online * +compServiceCharge.value;
+
+  const competitorTotalCost =
+    commissionCost +
+    +compMonthlyFee.value +
+    flatRateCost +
+    customerServiceCost;
+
+  const foodhubCost =
+    (online * orderValue * (+fhCommission.value / 100)) +
+    +fhMonthlyFee.value +
     (cardOrders * +fhCardFee.value) -
-    (o * +fhService.value);
+    (online * +fhServiceCharge.value);
 
-  const savings = fdCost - fhCost;
+  const savings = competitorTotalCost - foodhubCost;
   const annualSavings = savings * 12;
-  const customerExtra = o * +fdService.value;
 
-  fdCostEl.textContent = fdCost.toFixed(2);
-  fhCostEl.textContent = fhCost.toFixed(2);
+  compCostEl.textContent = competitorTotalCost.toFixed(2);
+  fhCostEl.textContent = foodhubCost.toFixed(2);
   monthlyEl.textContent = savings.toFixed(2);
   annualEl.textContent = annualSavings.toFixed(2);
 
   confidenceEl.textContent =
-    `High confidence savings: £${annualSavings.toFixed(0)} per year`;
+    `High confidence savings vs ${competitorName.value}: £${annualSavings.toFixed(0)} per year`;
 
   customerNoticeEl.textContent =
-    `Your customers pay £${customerExtra.toFixed(0)} more per month on Flipdish.`;
+    `£${customerServiceCost.toFixed(0)} per month is paid by customers on ${competitorName.value} in service charges that do not go to the restaurant.`;
 
-  drawCharts(fdCost, fhCost, annualSavings);
-  saveToSheet(fdCost, fhCost, savings, annualSavings, customerExtra);
+  drawCharts(competitorTotalCost, foodhubCost, annualSavings);
+  saveToSheet(competitorTotalCost, foodhubCost, savings, annualSavings, customerServiceCost);
 }
 
-function saveToSheet(fdCost, fhCost, monthlySavings, annualSavings, customerExtra) {
+function saveToSheet(compCost, fhCost, monthlySavings, annualSavings, customerExtra) {
   const payload = JSON.stringify({
     agent: agent.value,
     store: store.value,
-    orders: orders.value,
+    competitor: competitorName.value,
+    onlineOrders: onlineOrders.value,
+    offlineOrders: offlineOrders.value,
     aov: aov.value,
-    cardRate: cardRate.value,
-    fdCost: fdCost.toFixed(2),
-    fhCost: fhCost.toFixed(2),
+    competitorCost: compCost.toFixed(2),
+    foodhubCost: fhCost.toFixed(2),
     monthlySavings: monthlySavings.toFixed(2),
     annualSavings: annualSavings.toFixed(2),
     customerExtra: customerExtra.toFixed(2)
@@ -194,17 +272,17 @@ function saveToSheet(fdCost, fhCost, monthlySavings, annualSavings, customerExtr
   navigator.sendBeacon(GOOGLE_SHEET_WEBHOOK, new Blob([payload]));
 }
 
-function drawCharts(fd, fh, annual) {
+function drawCharts(compCost, fhCost, annual) {
   if (monthlyChart) monthlyChart.destroy();
   if (annualChart) annualChart.destroy();
 
   monthlyChart = new Chart(el("monthlyChart"), {
     type: "bar",
     data: {
-      labels: ["Flipdish", "Foodhub"],
+      labels: [competitorName.value, "Foodhub"],
       datasets: [{
         label: "Monthly Cost (£)",
-        data: [fd, fh],
+        data: [compCost, fhCost],
         backgroundColor: ["#E4002B", "#1FA971"]
       }]
     }
