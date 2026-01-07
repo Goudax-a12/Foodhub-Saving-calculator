@@ -212,7 +212,7 @@ canvas {
 </div>
 
 <script>
-const GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbyHXaO8IkvvzxmYae48wZGYzbW0Ld0rp27Xfml2UHoa_ufiAA-KyguqB6H5Ff2g0xuC/exec";
+const GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbzuDioE4f42lgEsxrBylEpVWd1pfBv18F5BRK-MF9eprGazXdEGF_9cPlUddPA7R_HT/exec";
 const el = id => document.getElementById(id);
 
 let monthlyChart, annualChart;
@@ -225,14 +225,14 @@ function togglePitch() {
   el("inputs").classList.toggle("hidden", pitchMode);
 }
 
-function animateValue(elm, end) {
+function animateAnnual(value) {
   let start = 0;
   let startTime = null;
   function step(t) {
     if (!startTime) startTime = t;
     const progress = Math.min((t - startTime) / 800, 1);
-    elm.textContent =
-      "£" + Math.floor(progress * (end - start) + start).toLocaleString();
+    el("annual").textContent =
+      "£" + Math.floor(progress * value).toLocaleString();
     if (progress < 1) requestAnimationFrame(step);
   }
   requestAnimationFrame(step);
@@ -274,14 +274,13 @@ function calculate() {
 
   const savings = competitorCost - foodhubCost;
   const annual = savings * 12;
+  const customerExtra = online * +el("compServiceCharge").value;
 
   el("compCost").textContent = competitorCost.toFixed(2);
   el("fhCost").textContent = foodhubCost.toFixed(2);
   el("monthly").textContent = savings.toFixed(2);
 
-  animateValue(el("annual"), annual);
-
-  const customerExtra = online * +el("compServiceCharge").value;
+  animateAnnual(annual);
 
   el("customerNotice").textContent =
     `Customers pay £${customerExtra.toFixed(0)} per month on ${el("competitorName").value}.`;
@@ -305,10 +304,7 @@ function saveToSheet(compCost, fhCost, monthlySavings, annualSavings, customerEx
     customerExtra: customerExtra.toFixed(2)
   });
 
-  navigator.sendBeacon(
-    GOOGLE_SHEET_WEBHOOK,
-    new Blob([payload])
-  );
+  navigator.sendBeacon(GOOGLE_SHEET_WEBHOOK, payload);
 }
 
 function drawCharts(comp, fh, annual) {
